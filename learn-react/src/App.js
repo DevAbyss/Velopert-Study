@@ -1,7 +1,4 @@
-import React from 'react';
-
-import Hello from './hello';
-import Wrapper from './Wrapper';
+import React, { useRef, useState } from 'react';
 
 // ! JSX 규칙
 // 1. Tag는 무조건 닫아준다.
@@ -11,12 +8,118 @@ import Wrapper from './Wrapper';
 // 5. css class를 설정할 때는 class가 아닌 className을 사용한다.
 // 6. 주석은 {/* 내용 */} 작성한다.
 
+// import Hello from './hello';
+// import Wrapper from './Wrapper';
+
+// function App() {
+//   return (
+//     <Wrapper>
+//       {/* props만 보내면, true 값이 보내짐 */}
+//       <Hello name='react' isSpecial />
+//       <Hello color={'red'} />
+//     </Wrapper>
+//   );
+// }
+
+// import Counter from './Counter';
+
+// function App() {
+//   return (
+//     <Counter />
+//   );
+// }
+
+// import InputSample from './InputSample';
+
+// function App() {
+//   return (
+//     <InputSample />
+//   );
+// }
+
+import UserList from './UserList';
+import CreateUser from './CreateUser';
+
 function App() {
+  const [users, setUsers] = useState([
+    {
+      id: 1,
+      username: 'velopert',
+      email: 'public.velopert@gmail.com',
+      active: true
+    },
+    {
+      id: 2,
+      username: 'test',
+      email: 'test@gmail.com',
+      active: false
+    },
+    {
+      id: 3,
+      username: 'marco',
+      email: 'marco@gmail.com',
+      active: false
+    }
+  ]);
+
+  const [inputs, setInputs] = useState({
+    username: '',
+    email: ''
+  });
+  const { username, email } = inputs;
+
+  const onChange = (e) => {
+    const { name, value } = e.target;
+
+    setInputs({
+      ...inputs,
+      [name]: value
+    });
+  };
+
+  const nextId = useRef(4);
+
+  const onCreate = () => {
+    const user = {
+      id: nextId.current,
+      username,
+      email
+    };
+
+    // 배열의 불변성을 유지하면서 배열에 새로운 항목을 추가하는 방법
+    // 1. spread 연산자
+    // setUsers([...users, user]);
+    // 2. concat 함수
+    setUsers(users.concat(user));
+
+    setInputs({
+      username: '',
+      email: ''
+    });
+    console.log(nextId.current);
+    nextId.current += 1;
+  };
+
+  // 배열의 불변성을 유지하면서 삭제
+  const onRemove = (id) => {
+    setUsers(users.filter(user => user.id !== id));
+  };
+
+  // 배열의 불변성을 유지하면서 배열의 항목을 수정하는 방법
+  const onToggle = id => {
+    setUsers(users.map(
+      user => user.id === id
+        ? { ...user, active: !user.active }
+        :
+        user
+    ));
+  };
+
   return (
-    <Wrapper>
-      <Hello name='react' />
-      <Hello />
-    </Wrapper>
+    <>
+      <CreateUser username={username} email={email} onChange={onChange} onCreate={onCreate} />
+      <UserList users={users} onRemove={onRemove} onToggle={onToggle} />
+    </>
   );
 }
 
