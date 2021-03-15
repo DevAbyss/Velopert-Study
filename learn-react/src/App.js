@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 // ! JSX 규칙
 // 1. Tag는 무조건 닫아준다.
@@ -40,6 +40,11 @@ import React, { useRef, useState } from 'react';
 import UserList from './UserList';
 import CreateUser from './CreateUser';
 
+function countActiveUsers(users) {
+  console.log('활성 사용자 수를 세는중...');
+  return users.filter(user => user.active).length;
+}
+
 function App() {
   const [users, setUsers] = useState([
     {
@@ -68,18 +73,18 @@ function App() {
   });
   const { username, email } = inputs;
 
-  const onChange = (e) => {
+  const onChange = useCallback((e) => {
     const { name, value } = e.target;
 
     setInputs({
       ...inputs,
       [name]: value
     });
-  };
+  }, [inputs]);
 
   const nextId = useRef(4);
 
-  const onCreate = () => {
+  const onCreate = useCallback(() => {
     const user = {
       id: nextId.current,
       username,
@@ -90,7 +95,7 @@ function App() {
     // 1. spread 연산자
     // setUsers([...users, user]);
     // 2. concat 함수
-    setUsers(users.concat(user));
+    setUsers(users => users.concat(user));
 
     setInputs({
       username: '',
@@ -98,27 +103,30 @@ function App() {
     });
     console.log(nextId.current);
     nextId.current += 1;
-  };
+  }, [username, email]);
 
   // 배열의 불변성을 유지하면서 삭제
-  const onRemove = (id) => {
-    setUsers(users.filter(user => user.id !== id));
-  };
+  const onRemove = useCallback((id) => {
+    setUsers(users => users.filter(user => user.id !== id));
+  }, []);
 
   // 배열의 불변성을 유지하면서 배열의 항목을 수정하는 방법
-  const onToggle = id => {
-    setUsers(users.map(
+  const onToggle = useCallback(id => {
+    setUsers(users => users.map(
       user => user.id === id
         ? { ...user, active: !user.active }
         :
         user
     ));
-  };
+  }, []);
+
+  const count = useMemo(() => countActiveUsers(users), [users]);
 
   return (
     <>
       <CreateUser username={username} email={email} onChange={onChange} onCreate={onCreate} />
       <UserList users={users} onRemove={onRemove} onToggle={onToggle} />
+      <div>활성 사용자 수: {count}</div>
     </>
   );
 }
